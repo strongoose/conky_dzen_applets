@@ -2,6 +2,15 @@
 == Refactoring ==
 =================
 
+security issue
+--------------
+It should probably not be possible to execute arbitrary lua using the conky
+config file. I guess making the file read-only (644, I guess) would eliminate
+this problem (?), but it's still not ideal. Maybe have a programmed in check
+that only allows calls to certain functions?
+
+There might just be a better way to do this than using loadstring, frankly.
+
 pad
 ---
 Get pad to arguments to reflect the alignment of the text, not the padding.
