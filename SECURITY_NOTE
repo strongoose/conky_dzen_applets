@@ -1,0 +1,3 @@
+The current implementation allows anyone with access to your conky config files
+to execute arbitrary lua. If you don't know what this means, I suggest you don't
+use this code.
