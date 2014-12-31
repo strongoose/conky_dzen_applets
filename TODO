@@ -1,0 +1,32 @@
+=================
+== Refactoring ==
+=================
+
+pad
+---
+Get pad to arguments to reflect the alignment of the text, not the padding.
+
+the combinator
+--------------
+The basic premise of the library is to allow a number of lua functions to be
+called on a single conky object and apply formatting to it. In this instance,
+formatting will take the form of prepended and appended strings around the
+original value. In order minimise the amount of pre-processing done by each
+function, it seems sensible to have a single combinator function which takes as
+its arguments
+  1 the conky object,
+  2 a list of lists, in which each sublist is a function name and a series of
+arguments to that function.
+    e.g., conky_format(battery, [[colorise, 80, high, #00ff00], [pad, 3, 'r']
+
+Each function takes as its first argument the value of the conky object,
+followed by the list of supplied arguments. However, they should only return two
+strings, right_formatting and left_formatting. Modifications to the value should
+not be allowed. YAGNI, probably.
+
+The combinator takes these strings and adds them to its own right and left
+formatting strings. It should probably prepend to the left and append to the
+right, so that later formatting surrounds earlier formatting.
+
+Once the combinator has iterated through all the functions, it can concatenate
+left_formatting, value and right_formatting and return it.
