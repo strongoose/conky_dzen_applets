@@ -1,14 +1,34 @@
 -- Some functions for use in conky config files, designed to be used in
 -- conjunction with dzen.
---
--- Most functions here operate on either a normal string or a conky object. This
--- is convenient because it means that we can chain multiple functions together,
--- e.g. colorise a number by processing the conky object, then pad that number
--- to a certain width.
---
--- In order to do this, we need a function that processes input that could be
--- either a string or an object, and returns the parsed object in the first case
--- and the string in the other.
+
+function conky_format(object, functions)
+  value = conky_parse("${" .. object .. "}")
+  if not value then
+    return "Error: first argument to conky_format must be a conky object."
+  end
+  function_strings = get_function_strings(functions)
+  for _,string in pairs(function_strings) do
+    f = loadstring("return "..string)
+    call_return = dummy("one")
+    load_return = f()
+    lformat, rformat = unpack(f())
+  end
+  print(lformat .. rformat)
+end
+
+function get_function_strings(functions)
+  function_strings_table = {}
+  for i,list in pairs(functions) do
+    list_length = table.maxn(list)
+    function_string = list[1] .. "("
+    for j = 2, list_length-1 do
+      function_string = function_string .. list[j] .. ","
+    end
+    function_string = function_string .. list[list_length] .. ")"
+    function_strings_table[i] = function_string
+  end
+  return function_strings_table
+end
 
 function render(object_or_string)
   -- Parse object_or_string as a conky object if it's enclosed in ${ ... }
@@ -21,11 +41,6 @@ function render(object_or_string)
   else
     return object_or_string
   end
-end
-
--- We also need a function to join the others.
-
-function conky_chain()
 end
 
 function conky_pad(object_or_string, pad_width, side)
