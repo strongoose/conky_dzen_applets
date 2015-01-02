@@ -1,4 +1,5 @@
-conky_dzen_format
-=================
+conky_dzen_applets
+==================
 
-A lua library for output formatting with conky and dzen2
+A library of lua applets for outputting useful, dynamically colored data to dzen
+via conky.
