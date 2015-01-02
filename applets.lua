@@ -1,94 +1,88 @@
--- Some functions for use in conky config files, designed to be used in
--- conjunction with dzen.
+-- applets.lua
 --
--- This file contains a few different types of functions, loosely speaking.
+-- Some lua applets for use in conky config files, designed to be used in
+-- conjunction with dzen.
 -- 
--- functions prefixed with 'conky_' are outward facing, and are essentially lua
--- applets for conky, These functions should take as input relevant user-facing
--- options, such as high and low thresholds for battery colorising, icon
--- locations, etc.
--- conky_colorised_batmon(), for instance, outputs a battery monitor which is
--- padded to a fixed width, changes color depending on battery charge, and uses
--- some nice, also colorised dzen icons to indicate status.
+-- functions in this file are essentially lua applets for conky, and can be
+-- called in conky using the lua api (with lua_parse). These functions should
+-- take as input relevant user-facing options, such as high and low thresholds
+-- for battery colorising, icon locations, etc.
+-- conky_colorised_battery(), for instance, outputs battery status and charge
+-- percentage, padded to a fixed width, and colorised depending on battery
+-- charge.
 -- 
--- Unprefixed functions are generally going to be worker functions, which add
--- formatting to values provided by the applets. These functions will take a
--- value as their primary argument, plus relevant options, and should output a
--- length 3 table of left-formatting and right-formatting, formatting text which
--- goes on the right and left of the value.
--- For example, conkt_colorised_batmon(), from above, calls the worker function
--- colorise() on the battery value, then pads the battery string it produces
--- using pad(). Both of these functions return a table which keeps formatting
--- and values seperated; it is up to the applet to combine them.
+-- applets will probably use a number of worker functions, located in
+-- 'workers.lua'. For example, conky_colorised_batmon() calls the worker
+-- function colorise() on the battery value, then pads the battery string it
+-- produces using pad(). Both of these functions return a table which keeps
+-- formatting and values seperated; it is up to the applet to combine them.
 
-function combine(lformat, value, rformat)
-  return lformat .. value .. rformat
-end
+require 'workers'
+require 'helpers'
 
-function pad(value, pad_width, alignment)
-  -- Pad the output of a conky object using spaces, to fixed width pad_width.
-  --
-  -- alignment defaults to 'r'
-  --
-  -- alignment may equal 'r' (default), 'l', 'c' == 'cr', or 'cl' These denote
-  -- four possible text alignments; right justified (padding on the left), left
-  -- justified (padding on the right), centred or right-centred, where text is
-  -- centred but favours the right (when exact centering is not possible), and
-  -- left-centred, which is centred but favours left-alignment.
-  
-  side = side or 'l'
-  if side ~= 'r' and side ~= 'l' and side ~= 'c' and side ~= 'cr' and side ~= 'cl' then
-    return "Error: " .. side .. " is not a valid alignment."
+function conky_colorised_battery(args)
+  -- 1 status indicator icon + 1 space + 3 digits + 1 percentage sign
+  -- = 6 chars
+  if not args then
+    args = {}
+  end
+  low = tonumber(args.low) or 20
+  high = tonumber(args.high) or 20
+  lcol = args.lowcolor or '#FF0000'
+  hcol = args.highcolor or '#0000FF'
+  ccol = args.chargecolor or '#00FF00'
+  mcol = args.mcol -- no default
+  width = args.width or 6
+  ac_icon = args.ac_icon or "/home/dan/.xmonad/dzen2/ac_01.xbm"
+  no_ac_icon = args.no_ac_icon or "/home/dan/.xmonad/dzen2/arr_down.xbm"
+
+  lformat, rformat = '', ''
+  hex_color_pattern = '#' .. string.rep('[%dA-Fa-f]', 6)
+
+  if lcol ~= string.match(lcol, hex_color_pattern) then
+    error('conky_colorised_battery: ' .. lcol .. ' is not a valid hex color code')
+  end
+  if hcol ~= string.match(hcol, hex_color_pattern) then
+    error('conky_colorised_battery: ' .. hcol .. ' is not a valid hex color code')
   end
 
-  pad_width = tonumber(pad_width)
-  length = tonumber(string.len(value))
-
-  if length > pad_width then
-    return "Error: object longer than pad length."
-  elseif length == pad_width then
-    return value
-  else
-    pad = pad_width - length
-    if side == 'r' then
-      lpad = pad
-      rpad = 0
-    elseif side == 'l' then
-      lpad = 0
-      rpad = pad
-    elseif side == 'c' or side == 'cr' then
-      lpad = math.ceil(pad/2)
-      rpad = pad - lpad
+  -- Check battery status
+  status, value = unpack(split(conky_parse("${battery_short}")))
+  if status == 'C' or status == 'D' then
+    if status == 'C' then
+      status_name = 'charging'
+      icon = ac_icon
     else
-      lpad = math.floor(pad/2)
-      rpad = pad - lpad
+      status_name = 'discharging'
+      icon = no_ac_icon
     end
-    return string.rep(" ", lpad) .. value .. string.rep(" ", rpad)
-    --return {string.rep(" ", lpad), value, string.rep(" ", rpad)}
-  end
-end
-
-function conky_num_color(object, threshold, color, low_or_high)
-  -- Colorise numerical conky output; by default, below `threshold` output will
-  -- be colored by `color`. Set low_or_high to 'high' to color above threshold.
-  -- color must be a string composed of a hash followed by 6 digits (a hex color
-  -- code).
-  low_or_high = low_or_high or 'low'
-  threshold = tonumber(threshold)
-
-  if low_or_high == 'low' then
-    low = true
-  elseif low_or_high == 'high' then
-    low = false
+    value = assert(tonumber(value:match("(%d?%d?%d)%%")), "percentage"..
+                   " expected with status "..status_name..", got "..value)
+  elseif status == 'F' then
+    value = 100
+  elseif status == 'E' then
+    value = 0
+  elseif status == 'U' then
+    return pad('???', width, 'c')
+  elseif status == 'N' then
+    return dzen_fg('#FF0000').."Battery not present"..dzen_fg()
   else
-    return "Error: " .. low_or_high .. " is not a valid argument."
+    error("conky_colorised_barrery: something went wrong processing battery status\n"
+          .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
 
-  object_string = "${" .. object .."}"
-  value = conky_parse(object_string)
-  if (low and (value <= threshold)) or (not low and (value >= threshold)) then
-    return {"^fg(" .. color .. ")", value, "^fg()"}
-  else
-    return {"", value, ""}
+  -- Now get the formatting for the number color.
+  if status == 'D' then
+    lformat, rformat = add_formatting(lformat, rformat,
+                                      dynamic_colorise(value, low, high, lcol,
+                                                       hcol))
+  elseif status == 'C' then
+    lformat, rformat = dzen_fg(ccol), dzen_fg()
   end
+  
+  if icon then
+    value = dzen_ico(icon)..tostring(value)
+    width = width + string.len(icon)
+  end
+  return lformat..pad(value, width)..rformat
 end
