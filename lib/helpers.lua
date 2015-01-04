@@ -12,14 +12,21 @@ function split(string)
 end
 
 function add_formatting(lformat, rformat, newlformat, newrformat)
+  lformat = lformat or ''
+  rformat = rformat or ''
+  newlformat = newlformat or ''
+  newrformat = newrformat or ''
   return newlformat..lformat, rformat..newrformat
 end
 
 function dzen_fg(color)
   -- Wraps string with dzen foreground color syntax. With no arg, returns just
   -- ^fg(), which sets the color back to default.
-  color = color or ''
-  return '^fg('..color..')'
+  if color then
+    return '^fg(\\'..color..')'
+  else
+    return '^fg()'
+  end
 end
 
 function dzen_ico(path)

@@ -20,23 +20,20 @@
 require 'workers'
 require 'helpers'
 
-function conky_print(msg)
-  return msg
-end
-
 function conky_battery(args)
-  -- 1 status indicator icon + 1 space + 3 digits + 1 percentage sign
-  -- = 6 chars
   if not args then
     args = {}
   end
+  error(args[chargecolor])
   low = tonumber(args.low) or 20
   high = tonumber(args.high) or 20
   lcol = args.lowcolor or '#FF0000'
   hcol = args.highcolor or '#0000FF'
   ccol = args.chargecolor or '#00FF00'
   mcol = args.mcol -- no default
-  width = args.width or 6
+  -- 1 status indicator icon + 1 space + 3 digits
+  -- = 5 chars
+  width = args.width or 5
   ac_icon = args.ac_icon or "/home/dan/.xmonad/dzen2/ac_01.xbm"
   no_ac_icon = args.no_ac_icon or "/home/dan/.xmonad/dzen2/arr_down.xbm"
 
@@ -51,23 +48,21 @@ function conky_battery(args)
   end
 
   -- Check battery status
-  status, value = unpack(split(conky_parse("${battery_short}")))
-  if status == 'C' or status == 'D' then
-    if status == 'C' then
-      status_name = 'charging'
-      icon = ac_icon
-    else
-      status_name = 'discharging'
-      icon = no_ac_icon
-    end
-    value = assert(tonumber(value:match("(%d?%d?%d)%%")), "percentage"..
+  status, value = unpack(split(tostring(conky_parse("${battery_short}"))))
+  if value then
+    value = assert(value:match("(%d?%d?%d)%%"), "percentage"..
                    " expected with status "..status_name..", got "..value)
-  elseif status == 'F' then
-    value = 100
+  end
+
+  if status == 'F' then
+    status = 'C'
+    value = "100"
   elseif status == 'E' then
-    value = 0
+    status = 'D'
+    value = "0"
   elseif status == 'U' then
-    return pad('???', width, 'c')
+    lformat, rformat = fixed_width_pad('???', width, 'c')
+    return lformat .. '???' .. rformat
   elseif status == 'N' then
     return dzen_fg('#FF0000').."Battery not present"..dzen_fg()
   else
@@ -75,22 +70,29 @@ function conky_battery(args)
           .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
 
+  if status == 'C' then
+    status_name = 'charging'
+    icon = ac_icon
+  else
+    status_name = 'discharging'
+    icon = no_ac_icon
+  end
+  icon = dzen_ico(icon)
+
   -- Now get the formatting for the number color.
   if status == 'D' then
-    lformat, rformat = add_formatting(lformat, rformat,
-                                      dynamic_colorise(value, low, high, lcol,
-                                                       hcol))
-  elseif status == 'C' then
-    lformat, rformat = add_formatting(lformat, rformat,
-                                      dzen_fg(ccol), dzen_fg())
+    valcol_l, valcol_r = add_formatting(lformat, rformat,
+                                        dynamic_colorise(value, low, high, lcol,
+                                                         hcol))
+  else
+    valcol_l, valcol_r = add_formatting(lformat, rformat,
+                                        dzen_fg(ccol), dzen_fg())
   end
 
   -- Get padding
-  lformat, rformat = add_formatting(lformat, rformat,
-                                    pad(value, width))
-  
-  if icon then
-    value = dzen_ico(icon)..tostring(value)
-  end
-  return lformat..value..rformat
+  value_width = string.len(value) + 2 -- Plus two characters for the icon and the space
+  lpad, rpad = add_formatting(lformat, rformat,
+                              fixed_width_pad(value_width, width))
+
+  return lpad..icon..' '..valcol_l..value..valcol_r..'%'..rpad
 end

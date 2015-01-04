@@ -7,7 +7,9 @@
 --  
 --  If there is no work to be done these functions should return nil
 
-function pad(value, pad_width, alignment)
+require 'helpers'
+
+function fixed_width_pad(length, pad_width, alignment)
   -- Pad the output of a conky object using spaces, to fixed width pad_width.
   --
   -- alignment defaults to 'r'
@@ -23,13 +25,8 @@ function pad(value, pad_width, alignment)
     error("pad: '" .. side .. "' is not a valid alignment")
   end
 
-  pad_width = tonumber(pad_width)
-  length = tonumber(string.len(value))
-
   if length > pad_width then
     error("pad: value to be padded is longer than pad_width")
-  elseif length == pad_width then
-    return value
   else
     pad = pad_width - length
     if side == 'l' then
@@ -53,6 +50,8 @@ function dynamic_colorise(value, low, high, lowcol, highcol)
   -- Dynamically colorise numerical conky output; if value is below low or above
   -- high, apply lowcol or highcol, respectively. color must be a string
   -- composed of a hash followed by 6 digits (a hex color code).
+
+  value = tonumber(value)
 
   if not (low or high) then
     return None
