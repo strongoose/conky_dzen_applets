@@ -32,13 +32,13 @@ function pad(value, pad_width, alignment)
     return value
   else
     pad = pad_width - length
-    if side == 'r' then
+    if side == 'l' then
       lpad = pad
       rpad = 0
-    elseif side == 'l' then
+    elseif side == 'r' then
       lpad = 0
       rpad = pad
-    elseif side == 'c' or side == 'cr' then
+    elseif side == 'cl' then
       lpad = math.ceil(pad/2)
       rpad = pad - lpad
     else

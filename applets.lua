@@ -20,7 +20,11 @@
 require 'workers'
 require 'helpers'
 
-function conky_colorised_battery(args)
+function conky_hello()
+  return "\'hi\'"
+end
+
+function conky_battery(args)
   -- 1 status indicator icon + 1 space + 3 digits + 1 percentage sign
   -- = 6 chars
   if not args then
@@ -77,12 +81,16 @@ function conky_colorised_battery(args)
                                       dynamic_colorise(value, low, high, lcol,
                                                        hcol))
   elseif status == 'C' then
-    lformat, rformat = dzen_fg(ccol), dzen_fg()
+    lformat, rformat = add_formatting(lformat, rformat,
+                                      dzen_fg(ccol), dzen_fg())
   end
+
+  -- Get padding
+  lformat, rformat = add_formatting(lformat, rformat,
+                                    pad(value, width))
   
   if icon then
     value = dzen_ico(icon)..tostring(value)
-    width = width + string.len(icon)
   end
-  return lformat..pad(value, width)..rformat
+  return lformat..value..rformat
 end
