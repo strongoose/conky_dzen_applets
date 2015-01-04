@@ -20,8 +20,8 @@
 require 'workers'
 require 'helpers'
 
-function conky_hello()
-  return "\'hi\'"
+function conky_print(msg)
+  return msg
 end
 
 function conky_battery(args)
