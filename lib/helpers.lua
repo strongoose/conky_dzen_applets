@@ -52,61 +52,45 @@ function string_to_table(input)
   state = "start"
 
   for char in char_iter(input) do
-    print("Processing '"..char.."'...")
-    print("State: "..state)
     -- if_escaped
     -- if we are not currently escaped, and the current character is a
     -- backslash, set escaped = true and skip processing
     if not escaped and char == '\\' then
-        print("Escaping...")
         escaped = true
     else
 
       -- if_state
       if state == "start" then
         if char == '{' then
-          print("Exiting 'start', setting state to 'key'")
           state = "key"
           key = ''
         elseif string.find(char, '%s') then
-          print("") 
         else
           error(format_err)
         end
   
       elseif state == 'key' then
         if char ~= '=' or escaped then
-          print("Adding '"..char.."' to key "..key)
           key = key..char
-          print("New key: "..key)
         else
-          print("Setting state to value")
           state = "value"
           value = ''
         end
   
       elseif state == "value" then
         if char == '}' and not escaped then
-          print("End of value (close bracket). Adding key;value pair to table.")
           t[key] = value
-          print(key.."="..t[key])
           state = "done"
         elseif char ~= ',' or escaped then
-          print("Adding "..char.." to value "..value)
           value = value..char
-          print("New value: "..value)
         else
-          print("End of value (comma). Adding key;value pair to table.")
           t[key] = value
-          print(key.."="..t[key])
           state = "next"
         end
   
       elseif state == "next" then
         if string.find(char, '%s') then
-          print("Found space during 'next' processing, skipping.")
         else
-          print("Exiting state 'next', entering state 'key'.")
           state = 'key'
           key = char
         end
