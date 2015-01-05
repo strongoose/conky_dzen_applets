@@ -23,8 +23,12 @@ require 'helpers'
 function conky_battery(args)
   if not args then
     args = {}
+  else
+    args = assert(string_to_table(args), "Error converting argument to table:"
+                                         .." argument must be of form {key1=value1"
+                                         ..", key2=value2, ...})")
   end
-  error(args[chargecolor])
+  error(args.highcolor)
   low = tonumber(args.low) or 20
   high = tonumber(args.high) or 20
   lcol = args.lowcolor or '#FF0000'
@@ -48,10 +52,10 @@ function conky_battery(args)
   end
 
   -- Check battery status
-  status, value = unpack(split(tostring(conky_parse("${battery_short}"))))
+  status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
   if value then
-    value = assert(value:match("(%d?%d?%d)%%"), "percentage"..
-                   " expected with status "..status_name..", got "..value)
+    value = assert(value:match("(%d?%d?%d)%%"), "error extracting number from "
+                                                ..value)
   end
 
   if status == 'F' then
@@ -65,7 +69,7 @@ function conky_battery(args)
     return lformat .. '???' .. rformat
   elseif status == 'N' then
     return dzen_fg('#FF0000').."Battery not present"..dzen_fg()
-  else
+  elseif status ~= 'C' and status ~= 'D' then
     error("conky_colorised_barrery: something went wrong processing battery status\n"
           .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
@@ -94,5 +98,6 @@ function conky_battery(args)
   lpad, rpad = add_formatting(lformat, rformat,
                               fixed_width_pad(value_width, width))
 
+  --error(lpad..icon..' '..valcol_l..value..valcol_r..'%'..rpad)
   return lpad..icon..' '..valcol_l..value..valcol_r..'%'..rpad
 end
