@@ -28,7 +28,6 @@ function conky_battery(args)
                                          .." argument must be of form {key1=value1"
                                          ..", key2=value2, ...})")
   end
-  error(args.highcolor)
   low = tonumber(args.low) or 20
   high = tonumber(args.high) or 20
   lcol = args.lowcolor or '#FF0000'
