@@ -1,8 +1,0 @@
-Recent changes
-==============
-
-- Remodeled library to provide "applet" functions, rather than attempting to
-provie generic functions for modifying conky objects (which seemed like a bit of
-a nightmare).
-
-- Renamed project accordingly!
