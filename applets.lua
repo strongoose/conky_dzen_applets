@@ -25,33 +25,27 @@ function conky_battery(args)
     args = {}
   else
     args = assert(string_to_table(args), "Error converting argument to table:"
-                                         .." argument must be of form {key1=value1"
-                                         ..", key2=value2, ...})")
+                                               .." argument must be of form {key1=value1"
+                                               ..", key2=value2, ...})")
   end
-  low = tonumber(args.low) or 20
-  high = tonumber(args.high) or 20
-  lcol = args.lowcolor or '#FF0000'
-  hcol = args.highcolor or '#0000FF'
-  ccol = args.chargecolor or '#00FF00'
-  mcol = args.mcol -- no default
+  local low = tonumber(args.low) or 20
+  local high = tonumber(args.high) or 20
+  local lcol = args.lowcolor or '#FF0000'
+  local hcol = args.highcolor or '#0000FF'
+  local ccol = args.chargecolor or '#00FF00'
+  local mcol = args.mcol -- no default
   -- 1 status indicator icon + 1 space + 3 digits
   -- = 5 chars
-  width = args.width or 5
-  ac_icon = args.ac_icon or "/home/dan/.xmonad/dzen2/ac_01.xbm"
-  no_ac_icon = args.no_ac_icon or "/home/dan/.xmonad/dzen2/arr_down.xbm"
+  local width = args.width or 5
+  local ac_icon = args.ac_icon or "/home/dan/.xmonad/dzen2/ac_01.xbm"
+  local no_ac_icon = args.no_ac_icon or "/home/dan/.xmonad/dzen2/arr_down.xbm"
+  local ac_icon_col = args.ac_icon_color or nil
+  local no_ac_icon_col = args.no_ac_icon_color or nil
 
-  lformat, rformat = '', ''
-  hex_color_pattern = '#' .. string.rep('[%dA-Fa-f]', 6)
-
-  if lcol ~= string.match(lcol, hex_color_pattern) then
-    error('conky_colorised_battery: ' .. lcol .. ' is not a valid hex color code')
-  end
-  if hcol ~= string.match(hcol, hex_color_pattern) then
-    error('conky_colorised_battery: ' .. hcol .. ' is not a valid hex color code')
-  end
+  local lformat, rformat = '', ''
 
   -- Check battery status
-  status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
+  local status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
   if value then
     value = assert(value:match("(%d?%d?%d)%%"), "error extracting number from "
                                                 ..value)
@@ -73,16 +67,21 @@ function conky_battery(args)
           .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
 
+  local icon, icon_col = 0, 0 -- Set correct scope (local to function)
   if status == 'C' then
     status_name = 'charging'
     icon = ac_icon
+    icon_col = ac_icon_col
   else
     status_name = 'discharging'
     icon = no_ac_icon
+    icon_col = no_ac_icon_col
   end
   icon = dzen_ico(icon)
+  icon_col = dzen_fg(icon_col)
 
   -- Now get the formatting for the number color.
+  local valcol_l, valcol_r = 0, 0
   if status == 'D' then
     valcol_l, valcol_r = add_formatting(lformat, rformat,
                                         dynamic_colorise(value, low, high, lcol,
@@ -92,11 +91,12 @@ function conky_battery(args)
                                         dzen_fg(ccol), dzen_fg())
   end
 
-  -- Get padding
-  value_width = string.len(value) + 2 -- Plus two characters for the icon and the space
-  lpad, rpad = add_formatting(lformat, rformat,
-                              fixed_width_pad(value_width, width))
+  -- If we were given an icon color, set that:
 
-  --error(lpad..icon..' '..valcol_l..value..valcol_r..'%'..rpad)
-  return lpad..icon..' '..valcol_l..value..valcol_r..'%'..rpad
+  -- Get padding
+  local value_width = string.len(value) + 2 -- Plus two characters for the icon and the space
+  local lpad, rpad = add_formatting(lformat, rformat,
+                                    fixed_width_pad(value_width, width))
+
+  return lpad..icon_col..icon..' '..valcol_l..value..valcol_r..'%'..rpad
 end

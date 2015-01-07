@@ -24,11 +24,16 @@ end
 function dzen_fg(color)
   -- Wraps string with dzen foreground color syntax. With no arg, returns just
   -- ^fg(), which sets the color back to default.
+  local hex_color_pattern = '#' .. string.rep('[%dA-Fa-f]', 6)
+  local string = "^fg()"
   if color then
-    return '^fg(\\'..color..')'
-  else
-    return '^fg()'
+    if color == color:match(hex_color_pattern) then
+      string = '^fg(\\'..color..')'
+    else
+      error(color.." is not a valid hex string.")
+    end
   end
+  return string
 end
 
 function dzen_ico(path)
