@@ -5,17 +5,18 @@
 -- 
 -- functions in this file are essentially lua applets for conky, and can be
 -- called in conky using the lua api (with lua_parse). These functions should
--- take as input relevant user-facing options, such as high and low thresholds
--- for battery colorising, icon locations, etc.
+-- take as input a table-formatted string of keyword arguments (of the form
+-- {keyword=value, keyword_two=value_two, ...}).
+--
 -- conky_colorised_battery(), for instance, outputs battery status and charge
 -- percentage, padded to a fixed width, and colorised depending on battery
 -- charge.
 -- 
--- applets will probably use a number of worker functions, located in
--- 'workers.lua'. For example, conky_colorised_batmon() calls the worker
--- function colorise() on the battery value, then pads the battery string it
--- produces using pad(). Both of these functions return a table which keeps
--- formatting and values seperated; it is up to the applet to combine them.
+-- applets will use a number of worker functions, located in 'workers.lua'. For
+-- example, conky_colorised_batmon() calls the worker function colorise() on the
+-- battery value, then pads the battery string it produces using pad(). Both of
+-- these functions return a table which keeps formatting and values seperated;
+-- it is up to the applet to combine them.
 
 require 'workers'
 require 'helpers'
@@ -28,6 +29,7 @@ function conky_battery(args)
                     .." form {key1=value1, key2=value2, ...})"
     args = assert(string_to_table(args), arg_err)
   end
+
   local low = tonumber(args.low) or 20
   local high = tonumber(args.high) or 20
   local lcol = args.lowcolor or '#FF0000'
@@ -83,6 +85,9 @@ function conky_battery(args)
   local valcol_l, valcol_r = nil
   if status == 'D' then
     valcol_l, valcol_r = dynamic_colorise(value, low, high, lcol, hcol)
+      if not valcol_l and valcol_r then
+        valcol_l, valcol_r = '', ''
+      end
   else
     valcol_l, valcol_r = dzen_fg(ccol), dzen_fg()
   end
@@ -105,13 +110,11 @@ function conky_cpu(args)
   local low = tonumber(args.low) or 15
   local high = tonumber(args.high) or 70
   local lcol = args.lowcolor or '#FF0000'
-  local hcol = args.highcolor or '#0000FF'
   local mcol = args.mediumcolor or '#00FF00'
-  -- 1 status indicator icon + 1 space + 3 digits
-  -- = 5 chars
-  local width = args.width or 5
-  local ac_icon = args.ac_icon or "/home/dan/.xmonad/dzen2/ac_01.xbm"
-  local no_ac_icon = args.no_ac_icon or "/home/dan/.xmonad/dzen2/arr_down.xbm"
-  local ac_icon_col = args.ac_icon_color or nil
-  local no_ac_icon_col = args.no_ac_icon_color or nil
+  local hcol = args.highcolor or '#0000FF'
+  local width = args.width or 3
+
+  local value = conky_parse("${cpu}")
+  val_err = "Problem processing cpu output"..value..": could not convert to number."
+  value = assert(tonumber(value), val_err)
 end

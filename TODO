@@ -1,1 +1,4 @@
-Parse args from conky as table
+Make colorise function better. Ideas:
+ * Parse table of tuples (color, value, (lt|gt))
+ * Parse only threshold at a time, and iterate function for more complex
+   results.

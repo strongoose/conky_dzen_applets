@@ -68,6 +68,6 @@ function dynamic_colorise(value, low, high, lowcol, highcol)
   if col then
     return dzen_fg(col), dzen_fg()
   else
-    return nil
+    return '', ''
   end
 end
