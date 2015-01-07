@@ -42,8 +42,6 @@ function conky_battery(args)
   local ac_icon_col = args.ac_icon_color or nil
   local no_ac_icon_col = args.no_ac_icon_color or nil
 
-  local lformat, rformat = '', ''
-
   -- Check battery status
   local status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
   if value then
@@ -58,8 +56,8 @@ function conky_battery(args)
     status = 'D'
     value = "0"
   elseif status == 'U' then
-    lformat, rformat = fixed_width_pad('???', width, 'c')
-    return lformat .. '???' .. rformat
+    local leftpad, rightpad = fixed_width_pad('???', width, 'c')
+    return leftpad .. '???' .. rightpad
   elseif status == 'N' then
     return dzen_fg('#FF0000').."Battery not present"..dzen_fg()
   elseif status ~= 'C' and status ~= 'D' then
@@ -83,20 +81,16 @@ function conky_battery(args)
   -- Now get the formatting for the number color.
   local valcol_l, valcol_r = 0, 0
   if status == 'D' then
-    valcol_l, valcol_r = add_formatting(lformat, rformat,
-                                        dynamic_colorise(value, low, high, lcol,
-                                                         hcol))
+    valcol_l, valcol_r = dynamic_colorise(value, low, high, lcol, hcol)
   else
-    valcol_l, valcol_r = add_formatting(lformat, rformat,
-                                        dzen_fg(ccol), dzen_fg())
+    valcol_l, valcol_r = dzen_fg(ccol), dzen_fg()
   end
 
   -- If we were given an icon color, set that:
 
   -- Get padding
   local value_width = string.len(value) + 2 -- Plus two characters for the icon and the space
-  local lpad, rpad = add_formatting(lformat, rformat,
-                                    fixed_width_pad(value_width, width))
+  local lpad, rpad = fixed_width_pad(value_width, width)
 
   return lpad..icon_col..icon..' '..valcol_l..value..valcol_r..'%'..rpad
 end

@@ -13,14 +13,6 @@ function split(input, seperators)
   return t
 end
 
-function add_formatting(lformat, rformat, newlformat, newrformat)
-  lformat = lformat or ''
-  rformat = rformat or ''
-  newlformat = newlformat or ''
-  newrformat = newrformat or ''
-  return newlformat..lformat, rformat..newrformat
-end
-
 function dzen_fg(color)
   -- Wraps string with dzen foreground color syntax. With no arg, returns just
   -- ^fg(), which sets the color back to default.
