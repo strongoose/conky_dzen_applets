@@ -24,9 +24,9 @@ function conky_battery(args)
   if not args then
     args = {}
   else
-    args = assert(string_to_table(args), "Error converting argument to table:"
-                                               .." argument must be of form {key1=value1"
-                                               ..", key2=value2, ...})")
+    local arg_err = "Error converting argument to table: argument must be of"
+                    .." form {key1=value1, key2=value2, ...})"
+    args = assert(string_to_table(args), arg_err)
   end
   local low = tonumber(args.low) or 20
   local high = tonumber(args.high) or 20
@@ -45,10 +45,11 @@ function conky_battery(args)
   -- Check battery status
   local status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
   if value then
-    value = assert(value:match("(%d?%d?%d)%%"), "error extracting number from "
-                                                ..value)
+    local val_err = "Error processng value "..value.." into number."
+    value = assert(value:match("(%d?%d?%d)%%"), val_err)
   end
 
+  -- Deal with the less usual statuses.
   if status == 'F' then
     status = 'C'
     value = "100"
