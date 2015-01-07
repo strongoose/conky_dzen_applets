@@ -93,3 +93,25 @@ function conky_battery(args)
 
   return lpad..icon_col..icon..' '..valcol_l..value..valcol_r..'%'..rpad
 end
+
+function conky_cpu(args)
+  if not args then
+    args = {}
+  else
+    local arg_err = "Error converting argument to table: argument must be of"
+                    .." form {key1=value1, key2=value2, ...})"
+    args = assert(string_to_table(args), arg_err)
+  end
+  local low = tonumber(args.low) or 15
+  local high = tonumber(args.high) or 70
+  local lcol = args.lowcolor or '#FF0000'
+  local hcol = args.highcolor or '#0000FF'
+  local mcol = args.mediumcolor or '#00FF00'
+  -- 1 status indicator icon + 1 space + 3 digits
+  -- = 5 chars
+  local width = args.width or 5
+  local ac_icon = args.ac_icon or "/home/dan/.xmonad/dzen2/ac_01.xbm"
+  local no_ac_icon = args.no_ac_icon or "/home/dan/.xmonad/dzen2/arr_down.xbm"
+  local ac_icon_col = args.ac_icon_color or nil
+  local no_ac_icon_col = args.no_ac_icon_color or nil
+end
