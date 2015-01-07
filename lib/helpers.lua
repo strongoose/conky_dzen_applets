@@ -5,8 +5,8 @@
 function split(input, seperators)
   -- Return table of words in input string seperated by the characters
   -- in seperators
-  pattern = "[^"..seperators.."]+"
-  t = {}
+  local pattern = "[^"..seperators.."]+"
+  local t = {}
   for word in input:gmatch(pattern) do
     table.insert(t, word)
   end
@@ -44,18 +44,21 @@ end
 function string_to_table(input)
   -- Note: keys may not have leading whitespace, nor may values have trailing
   -- whitespace.
-  format_err = "string must be in format {key1=value1, key2=value2, ...}"
-  t = {}
-  state = "start"
+  local format_err = "string must be in format {key1=value1, key2=value2, ...}"
+  local t = {}
+  local state = "start"
+  local key, value = nil
 
   for char in char_iter(input) do
     -- if_escaped
     -- if we are not currently escaped, and the current character is a
     -- backslash, set escaped = true and skip processing
+    --
+    local escaped = false
+
     if not escaped and char == '\\' then
         escaped = true
     else
-
       -- if_state
       if state == "start" then
         if char == '{' then
@@ -92,9 +95,7 @@ function string_to_table(input)
           key = char
         end
       end --end if_state
-      
-      escaped = false
     end --end if_escaped
-  end
+  end --end for loop
   return t
 end

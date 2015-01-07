@@ -20,7 +20,7 @@ function fixed_width_pad(length, pad_width, alignment)
   -- centred but favours the right (when exact centering is not possible), and
   -- left-centred, which is centred but favours left-alignment.
   
-  side = side or 'l'
+  local side = side or 'l'
   if side ~= 'r' and side ~= 'l' and side ~= 'c' and side ~= 'cr' and side ~= 'cl' then
     error("pad: '" .. side .. "' is not a valid alignment")
   end
@@ -28,7 +28,8 @@ function fixed_width_pad(length, pad_width, alignment)
   if length > pad_width then
     error("pad: value to be padded is longer than pad_width")
   else
-    pad = pad_width - length
+    local pad = pad_width - length
+    local lpad, rpad = nil
     if side == 'l' then
       lpad = pad
       rpad = 0
@@ -51,12 +52,13 @@ function dynamic_colorise(value, low, high, lowcol, highcol)
   -- high, apply lowcol or highcol, respectively. color must be a string
   -- composed of a hash followed by 6 digits (a hex color code).
 
-  value = tonumber(value)
+  local value = tonumber(value)
 
   if not (low or high) then
     return None
   end
 
+  local col = nil
   if value <= low then
     col = lowcol
   elseif value >= high then
@@ -66,6 +68,6 @@ function dynamic_colorise(value, low, high, lowcol, highcol)
   if col then
     return dzen_fg(col), dzen_fg()
   else
-    return None
+    return nil
   end
 end

@@ -65,7 +65,7 @@ function conky_battery(args)
           .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
 
-  local icon, icon_col = 0, 0 -- Set correct scope (local to function)
+  local icon, icon_col = nil -- Set correct scope (local to function)
   if status == 'C' then
     status_name = 'charging'
     icon = ac_icon
@@ -79,14 +79,12 @@ function conky_battery(args)
   icon_col = dzen_fg(icon_col)
 
   -- Now get the formatting for the number color.
-  local valcol_l, valcol_r = 0, 0
+  local valcol_l, valcol_r = nil
   if status == 'D' then
     valcol_l, valcol_r = dynamic_colorise(value, low, high, lcol, hcol)
   else
     valcol_l, valcol_r = dzen_fg(ccol), dzen_fg()
   end
-
-  -- If we were given an icon color, set that:
 
   -- Get padding
   local value_width = string.len(value) + 2 -- Plus two characters for the icon and the space
