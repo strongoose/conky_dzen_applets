@@ -99,3 +99,14 @@ function string_to_table(input)
   end --end for loop
   return t
 end
+
+function get_args(args)
+  if not args then
+    args = {}
+  else
+    local arg_err = "Error converting argument to table: argument must be of"
+                    .." form {key1=value1, key2=value2, ...})"
+    args = assert(string_to_table(args), arg_err)
+  end
+  return args
+end

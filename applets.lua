@@ -22,13 +22,8 @@ require 'workers'
 require 'helpers'
 
 function conky_battery(args)
-  if not args then
-    args = {}
-  else
-    local arg_err = "Error converting argument to table: argument must be of"
-                    .." form {key1=value1, key2=value2, ...})"
-    args = assert(string_to_table(args), arg_err)
-  end
+
+  args = get_args(args)
 
   local low = tonumber(args.low) or 20
   local lcol = args.lowcolor or '#FF0000'
@@ -44,10 +39,8 @@ function conky_battery(args)
 
   -- Check battery status
   local status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
-  if value then
-    local val_err = "Error processng value "..value.." into number."
-    value = assert(value:match("(%d?%d?%d)%%"), val_err)
-  end
+  local val_err = "Error processng value "..value.." into number."
+  value = assert(value:match("(%d?%d?%d)%%"), val_err)
 
   -- Deal with the less usual statuses.
   if status == 'F' then
@@ -98,13 +91,9 @@ function conky_battery(args)
 end
 
 function conky_cpu(args)
-  if not args then
-    args = {}
-  else
-    local arg_err = "Error converting argument to table: argument must be of"
-                    .." form {key1=value1, key2=value2, ...})"
-    args = assert(string_to_table(args), arg_err)
-  end
+
+  args = get_args(args)
+
   local low = tonumber(args.low) or 15
   local high = tonumber(args.high) or 70
   local lcol = args.lowcolor or '#00FF00'
