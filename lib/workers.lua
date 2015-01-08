@@ -47,27 +47,22 @@ function fixed_width_pad(length, pad_width, alignment)
   end
 end
 
-function dynamic_colorise(value, low, high, lowcol, highcol)
-  -- Dynamically colorise numerical conky output; if value is below low or above
-  -- high, apply lowcol or highcol, respectively. color must be a string
-  -- composed of a hash followed by 6 digits (a hex color code).
+function dynamic_colorise(value, threshold, lowcol, highcol)
+  -- Color a value different colors depending on whether it is above or below a
+  -- certain threshold.
 
   local value = tonumber(value)
 
-  if not (low or high) then
-    return None
-  end
-
   local col = nil
-  if value <= low then
+  if value < threshold then
     col = lowcol
-  elseif value >= high then
+  else
     col = highcol
   end
 
   if col then
     return dzen_fg(col), dzen_fg()
   else
-    return '', ''
+    return nil
   end
 end

@@ -31,11 +31,9 @@ function conky_battery(args)
   end
 
   local low = tonumber(args.low) or 20
-  local high = tonumber(args.high) or 20
   local lcol = args.lowcolor or '#FF0000'
   local hcol = args.highcolor or '#0000FF'
   local ccol = args.chargecolor or '#00FF00'
-  local mcol = args.mcol -- no default
   -- 1 status indicator icon + 1 space + 3 digits
   -- = 5 chars
   local width = args.width or 5
@@ -68,7 +66,7 @@ function conky_battery(args)
           .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
 
-  local icon, icon_col = nil -- Set correct scope (local to function)
+  local icon, icon_col = nil -- This is just for variable scope purposes
   if status == 'C' then
     status_name = 'charging'
     icon = ac_icon
@@ -84,8 +82,8 @@ function conky_battery(args)
   -- Now get the formatting for the number color.
   local valcol_l, valcol_r = nil
   if status == 'D' then
-    valcol_l, valcol_r = dynamic_colorise(value, low, high, lcol, hcol)
-      if not valcol_l and valcol_r then
+    valcol_l, valcol_r = dynamic_colorise(value, low, lcol, hcol)
+      if not valcol_l then
         valcol_l, valcol_r = '', ''
       end
   else
@@ -96,7 +94,7 @@ function conky_battery(args)
   local value_width = string.len(value) + 2 -- Plus two characters for the icon and the space
   local lpad, rpad = fixed_width_pad(value_width, width)
 
-  return lpad..icon_col..icon..' '..valcol_l..value..valcol_r..'%'..rpad
+  return icon_col..icon..lpad..' '..valcol_l..value..valcol_r..'%'..rpad
 end
 
 function conky_cpu(args)
@@ -109,12 +107,25 @@ function conky_cpu(args)
   end
   local low = tonumber(args.low) or 15
   local high = tonumber(args.high) or 70
-  local lcol = args.lowcolor or '#FF0000'
-  local mcol = args.mediumcolor or '#00FF00'
-  local hcol = args.highcolor or '#0000FF'
+  local lcol = args.lowcolor or '#00FF00'
+  local mcol = args.mediumcolor or '#FFFF00'
+  local hcol = args.highcolor or '#FF0000'
   local width = args.width or 3
 
   local value = conky_parse("${cpu}")
-  val_err = "Problem processing cpu output"..value..": could not convert to number."
+  local val_err = "Problem processing cpu output"..value..": could not convert to number."
   value = assert(tonumber(value), val_err)
+
+  local valcol_l, valcol_r = dynamic_colorise(value, low, lcol) -- if above low, return nil
+  if not valcol_l then
+    valcol_l, valcol_r = dynamic_colorise(value, high, mcol, hcol)
+    if not valcol_l then
+      valcol_l, valcol_r = '', ''
+    end
+  end
+
+  local value_width = string.len(value) -- Plus two characters for the icon and the space
+  local lpad, rpad = fixed_width_pad(value_width, width)
+
+  return lpad..valcol_l..value..valcol_r..rpad
 end
