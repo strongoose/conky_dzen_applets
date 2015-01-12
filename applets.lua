@@ -39,16 +39,14 @@ function conky_battery(args)
 
   -- Check battery status
   local status, value = unpack(split(tostring(conky_parse("${battery_short}")), ' '))
-  local val_err = "Error processng value "..value.." into number."
-  value = assert(value:match("(%d?%d?%d)%%"), val_err)
 
   -- Deal with the less usual statuses.
   if status == 'F' then
     status = 'C'
-    value = "100"
+    value = "100%"
   elseif status == 'E' then
     status = 'D'
-    value = "0"
+    value = "0%"
   elseif status == 'U' then
     local leftpad, rightpad = fixed_width_pad('???', width, 'c')
     return leftpad .. '???' .. rightpad
@@ -58,6 +56,9 @@ function conky_battery(args)
     error("conky_colorised_barrery: something went wrong processing battery status\n"
           .."Expected 'D', 'C', 'F' or 'U', but got '"..status.."'")
   end
+
+  local val_err = "Error processng value "..value.." into number."
+  value = assert(value:match("(%d?%d?%d)%%"), val_err)
 
   local icon, icon_col = nil -- This is just for variable scope purposes
   if status == 'C' then
